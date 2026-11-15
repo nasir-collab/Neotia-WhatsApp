@@ -1,0 +1,13 @@
+{
+  "name": "@anhvl/api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "start": "tsx src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run --config vitest.config.ts",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts"
+  }
+}
+

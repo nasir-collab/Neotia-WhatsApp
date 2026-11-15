@@ -1,0 +1,637 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Roles
+model Role {
+  id          String       @id @default(uuid())
+  code        String       @unique // SUPER_ADMIN, HOSPITAL_ADMIN, OPS_MANAGER, OPS_EXECUTIVE, CALL_CENTRE_AGENT, MANAGEMENT_VIEWER
+  name        String
+  description String?
+  status      String       @default("ACTIVE")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  permissions Permission[]
+  users       User[]
+
+  @@map("roles")
+}
+
+// 2. Permissions
+model Permission {
+  id          String   @id @default(uuid())
+  roleId      String   @map("role_id")
+  resource    String   // appointments, patients, messages, templates, followups, attendance, integrations, hospitals, users, reports, audit, settings, pilot
+  action      String   // read, write, manage, export, approve
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  role        Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, resource, action])
+  @@index([roleId])
+  @@map("permissions")
+}
+
+// 3. Hospitals
+model Hospital {
+  id                       String                    @id @default(uuid())
+  code                     String                    @unique // ANHVL-NTK, ANHVL-RPR
+  name                     String
+  city                     String
+  state                    String
+  timezone                 String                    @default("Asia/Kolkata")
+  status                   String                    @default("ACTIVE")
+  isDemoData               Boolean                   @default(true) @map("is_demo_data")
+  createdBy                String?                   @map("created_by")
+  createdAt                DateTime                  @default(now()) @map("created_at")
+  updatedAt                DateTime                  @updatedAt @map("updated_at")
+  configuration            HospitalConfiguration?
+  users                    User[]
+  patients                 Patient[]
+  consents                 PatientConsent[]
+  appointments             Appointment[]
+  appointmentEvents        AppointmentEvent[]
+  templates                MessageTemplate[]
+  scheduledMessages        ScheduledMessage[]
+  messageLogs              MessageLog[]
+  patientResponses         PatientResponse[]
+  followUpTasks            FollowUpTask[]
+  agents                   Agent[]
+  attendanceRecords        AttendanceRecord[]
+  integrationConfigs       IntegrationConfiguration[]
+  integrationLogs          IntegrationLog[]
+  syncJobs                 SyncJob[]
+  holdoutAssignments       HoldoutAssignment[]
+  auditLogs                AuditLog[]
+
+  @@index([code])
+  @@index([status])
+  @@map("hospitals")
+}
+
+// 4. HospitalConfigurations
+model HospitalConfiguration {
+  id                        String   @id @default(uuid())
+  hospitalId                String   @unique @map("hospital_id")
+  address                   String
+  mapLocationUrl            String   @map("map_location_url")
+  helpline                  String
+  opdTimings                String   @map("opd_timings")
+  entranceGuidance          String   @map("entrance_guidance")
+  parkingGuidance           String   @map("parking_guidance")
+  opdFloorDesk              String   @map("opd_floor_desk")
+  itemsToCarry              String   @map("items_to_carry")
+  firstVisitInstructions    String   @map("first_visit_instructions")
+  supportedLanguages        String[] @map("supported_languages") // ["en", "bn"] or ["en", "hi"]
+  defaultLanguage           String   @default("en") @map("default_language")
+  advanceReminderHours      Int      @default(24) @map("advance_reminder_hours")
+  preVisitReminderHours     Int      @default(3) @map("pre_visit_reminder_hours")
+  quietHoursStart           String   @default("21:00") @map("quiet_hours_start")
+  quietHoursEnd             String   @default("08:00") @map("quiet_hours_end")
+  allowMorningException     Boolean  @default(true) @map("allow_morning_exception")
+  morningCutoffTime         String   @default("10:30") @map("morning_cutoff_time")
+  pilotHoldoutEnabled       Boolean  @default(false) @map("pilot_holdout_enabled")
+  pilotHoldoutPercentage    Int      @default(20) @map("pilot_holdout_percentage")
+  departmentDoctorMappings  Json     @default("[]") @map("department_doctor_mappings")
+  communicationPreferences  Json     @default("{}") @map("communication_preferences")
+  dataVerificationLabel     String   @default("DEMONSTRATION DATA — PENDING ANHVL VERIFICATION") @map("data_verification_label")
+  status                    String   @default("ACTIVE")
+  updatedBy                 String?  @map("updated_by")
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+  hospital                  Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  @@map("hospital_configurations")
+}
+
+// 5. Users
+model User {
+  id                  String         @id @default(uuid())
+  email               String         @unique
+  fullName            String         @map("full_name")
+  passwordHash        String         @map("password_hash")
+  roleId              String         @map("role_id")
+  hospitalId          String?        @map("hospital_id") // null for cross-hospital roles (SUPER_ADMIN, OPS_MANAGER, MANAGEMENT_VIEWER)
+  status              String         @default("ACTIVE") // ACTIVE, INACTIVE, LOCKED
+  refreshTokenHash    String?        @map("refresh_token_hash")
+  resetTokenHash      String?        @map("reset_token_hash")
+  resetTokenExpiresAt DateTime?      @map("reset_token_expires_at")
+  lastLoginAt         DateTime?      @map("last_login_at")
+  createdBy           String?        @map("created_by")
+  createdAt           DateTime       @default(now()) @map("created_at")
+  updatedAt           DateTime       @updatedAt @map("updated_at")
+  role                Role           @relation(fields: [roleId], references: [id])
+  hospital            Hospital?      @relation(fields: [hospitalId], references: [id])
+  agentProfile        Agent?
+  auditLogs           AuditLog[]
+
+  @@index([email])
+  @@index([roleId])
+  @@index([hospitalId])
+  @@map("users")
+}
+
+// 6. Patients
+model Patient {
+  id                String            @id @default(uuid())
+  externalPatientId String            @map("external_patient_id")
+  hospitalId        String            @map("hospital_id")
+  fullName          String            @map("full_name")
+  mobileNumber      String            @map("mobile_number")
+  preferredLanguage String            @default("en") @map("preferred_language") // en, bn, hi
+  isSyntheticDemo   Boolean           @default(false) @map("is_synthetic_demo")
+  status            String            @default("ACTIVE")
+  createdBy         String?           @map("created_by")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  hospital          Hospital          @relation(fields: [hospitalId], references: [id])
+  consents          PatientConsent[]
+  appointments      Appointment[]
+  responses         PatientResponse[]
+  followUpTasks     FollowUpTask[]
+
+  @@unique([hospitalId, externalPatientId])
+  @@index([mobileNumber])
+  @@index([hospitalId])
+  @@map("patients")
+}
+
+// 7. PatientConsent
+model PatientConsent {
+  id                      String    @id @default(uuid())
+  patientId               String    @map("patient_id")
+  hospitalId              String    @map("hospital_id")
+  consentStatus           String    @default("GRANTED") @map("consent_status") // GRANTED, REVOKED, PENDING, UNKNOWN
+  consentSource           String    @default("HIS_BOOKING_FEED") @map("consent_source") // HIS_BOOKING_FEED, WHATSAPP_STOP, ADMIN_OVERRIDE, REGISTRATION_DESK
+  consentTimestamp        DateTime  @default(now()) @map("consent_timestamp")
+  optOutStatus            Boolean   @default(false) @map("opt_out_status")
+  optOutTimestamp         DateTime? @map("opt_out_timestamp")
+  optOutReason            String?   @map("opt_out_reason")
+  communicationEligible   Boolean   @default(true) @map("communication_eligible")
+  status                  String    @default("ACTIVE")
+  updatedBy               String?   @map("updated_by")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+  patient                 Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  hospital                Hospital  @relation(fields: [hospitalId], references: [id])
+
+  @@unique([patientId, hospitalId])
+  @@index([hospitalId, communicationEligible])
+  @@map("patient_consents")
+}
+
+// 8. Appointments
+model Appointment {
+  id                  String              @id @default(uuid())
+  bookingId           String              @map("booking_id")
+  patientId           String              @map("patient_id")
+  hospitalId          String              @map("hospital_id")
+  patientName         String              @map("patient_name")
+  mobileNumber        String              @map("mobile_number")
+  preferredLanguage   String              @default("en") @map("preferred_language")
+  department          String
+  doctorName          String              @map("doctor_name")
+  doctorCode          String?             @map("doctor_code")
+  opdLocation         String?             @map("opd_location")
+  appointmentDate     DateTime            @map("appointment_date")
+  appointmentTime     String              @map("appointment_time") // HH:mm in hospital local timezone
+  scheduledAtUtc      DateTime            @map("scheduled_at_utc")
+  bookingSource       String              @default("HIS_API") @map("booking_source") // HIS_API, HIS_WEBHOOK, SFTP_CSV, CALL_CENTRE, WALK_IN, DEMO_SIMULATOR
+  consentStatus       String              @default("GRANTED") @map("consent_status")
+  status              String              @default("RECEIVED") // RECEIVED, VALIDATED, CONFIRMATION_PENDING, CONFIRMED, RESCHEDULE_REQUESTED, CANCELLATION_REQUESTED, CANCELLED, COMPLETED, NO_SHOW, EXCEPTION
+  attendanceStatus    String              @default("PENDING") @map("attendance_status") // PENDING, ARRIVED, REGISTERED, COMPLETED, NO_SHOW, CANCELLED, UNMATCHED
+  integrationSource   String              @default("HIS_REST") @map("integration_source")
+  isFirstVisit        Boolean             @default(false) @map("is_first_visit")
+  isSyntheticDemo     Boolean             @default(false) @map("is_synthetic_demo")
+  validationErrors    String?             @map("validation_errors")
+  lastSyncedAt        DateTime            @default(now()) @map("last_synced_at")
+  createdBy           String?             @map("created_by")
+  createdAt           DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime            @updatedAt @map("updated_at")
+  patient             Patient             @relation(fields: [patientId], references: [id])
+  hospital            Hospital            @relation(fields: [hospitalId], references: [id])
+  events              AppointmentEvent[]
+  scheduledMessages   ScheduledMessage[]
+  messageLogs         MessageLog[]
+  patientResponses    PatientResponse[]
+  followUpTasks       FollowUpTask[]
+  attendanceRecords   AttendanceRecord[]
+  holdoutAssignment   HoldoutAssignment?
+
+  @@unique([hospitalId, bookingId])
+  @@index([hospitalId, status])
+  @@index([hospitalId, appointmentDate])
+  @@index([mobileNumber])
+  @@index([doctorName])
+  @@map("appointments")
+}
+
+// 9. AppointmentEvents
+model AppointmentEvent {
+  id              String      @id @default(uuid())
+  appointmentId   String      @map("appointment_id")
+  hospitalId      String      @map("hospital_id")
+  eventType       String      @map("event_type") // INGESTED, VALIDATED, CONFIRMATION_SENT, REMINDER_SCHEDULED, PATIENT_CONFIRMED, RESCHEDULE_REQUESTED, CANCELLATION_REQUESTED, CANCELLED_BY_HIS, ATTENDANCE_RECONCILED, NO_SHOW_FLAGGED, EXCEPTION_LOGGED
+  previousStatus  String?     @map("previous_status")
+  newStatus       String?     @map("new_status")
+  description     String
+  metadata        Json?
+  triggeredBy     String      @default("SYSTEM") @map("triggered_by")
+  status          String      @default("RECORDED")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  appointment     Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  hospital        Hospital    @relation(fields: [hospitalId], references: [id])
+
+  @@index([appointmentId])
+  @@index([hospitalId, createdAt])
+  @@map("appointment_events")
+}
+
+// 10. MessageTemplates
+model MessageTemplate {
+  id                String            @id @default(uuid())
+  hospitalId        String            @map("hospital_id")
+  code              String            // e.g. appt_confirmation, advance_reminder_24h, sameday_reminder_3h, appt_instructions, directions_guide, first_visit_help, reschedule_ack, cancel_ack, talk_to_us_ack, noshow_rebooking
+  name              String
+  category          String            // APPOINTMENT_CONFIRMATION, ADVANCE_REMINDER, SAMEDAY_REMINDER, APPOINTMENT_INSTRUCTIONS, DIRECTIONS, FIRST_VISIT_ASSISTANCE, RESCHEDULE_ACK, CANCELLATION_ACK, TALK_TO_US_ACK, NOSHOW_REBOOKING
+  language          String            // en, bn, hi
+  metaTemplateName  String            @map("meta_template_name")
+  metaCategory      String            @default("UTILITY") @map("meta_category")
+  activeVersion     Int               @default(1) @map("active_version")
+  approvalStatus    String            @default("APPROVED_DEMO") @map("approval_status") // DRAFT, SUBMITTED, APPROVED, APPROVED_DEMO, REJECTED, PAUSED
+  status            String            @default("ACTIVE")
+  createdBy         String?           @map("created_by")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  hospital          Hospital          @relation(fields: [hospitalId], references: [id])
+  versions          TemplateVersion[]
+  scheduledMessages ScheduledMessage[]
+  messageLogs       MessageLog[]
+
+  @@unique([hospitalId, code, language])
+  @@index([hospitalId, category, language])
+  @@map("message_templates")
+}
+
+// 11. TemplateVersions
+model TemplateVersion {
+  id                String          @id @default(uuid())
+  templateId        String          @map("template_id")
+  versionNumber     Int             @map("version_number")
+  headerText        String?         @map("header_text")
+  bodyText          String          @map("body_text")
+  footerText        String?         @map("footer_text")
+  variables         String[]        // ["patient_name", "appointment_date", "appointment_time", "doctor_name", "hospital_name", "hospital_address", "helpline"]
+  interactiveButtons Json           @default("[]") @map("interactive_buttons")
+  approvalStatus    String          @default("APPROVED_DEMO") @map("approval_status") // DRAFT, SUBMITTED, APPROVED, APPROVED_DEMO, REJECTED
+  metaTemplateId    String?         @map("meta_template_id")
+  rejectionReason   String?         @map("rejection_reason")
+  submittedAt       DateTime?       @map("submitted_at")
+  approvedAt        DateTime?       @map("approved_at")
+  status            String          @default("ACTIVE")
+  createdBy         String?         @map("created_by")
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+  template          MessageTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, versionNumber])
+  @@map("template_versions")
+}
+
+// 12. ScheduledMessages
+model ScheduledMessage {
+  id                String          @id @default(uuid())
+  idempotencyKey    String          @unique @map("idempotency_key")
+  appointmentId     String          @map("appointment_id")
+  hospitalId        String          @map("hospital_id")
+  templateId        String          @map("template_id")
+  jobType           String          @map("job_type") // CONFIRMATION, REMINDER_24H, REMINDER_3H, DIRECTIONS, FIRST_VISIT, NOSHOW_REBOOKING
+  scheduledForUtc   DateTime        @map("scheduled_for_utc")
+  originalTargetUtc DateTime        @map("original_target_utc")
+  wasQuietHourShifted Boolean       @default(false) @map("was_quiet_hour_shifted")
+  status            String          @default("SCHEDULED") // QUEUED, SCHEDULED, PROCESSING, COMPLETED, SUPPRESSED, CANCELLED, FAILED
+  suppressionReason String?         @map("suppression_reason")
+  retryCount        Int             @default(0) @map("retry_count")
+  maxRetries        Int             @default(3) @map("max_retries")
+  lastError         String?         @map("last_error")
+  executedAt        DateTime?       @map("executed_at")
+  isSyntheticDemo   Boolean         @default(false) @map("is_synthetic_demo")
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+  appointment       Appointment     @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  hospital          Hospital        @relation(fields: [hospitalId], references: [id])
+  template          MessageTemplate @relation(fields: [templateId], references: [id])
+
+  @@index([hospitalId, status, scheduledForUtc])
+  @@index([appointmentId])
+  @@map("scheduled_messages")
+}
+
+// 13. MessageLogs
+model MessageLog {
+  id                  String           @id @default(uuid())
+  appointmentId       String?          @map("appointment_id")
+  hospitalId          String           @map("hospital_id")
+  templateId          String?          @map("template_id")
+  direction           String           @default("OUTBOUND") // OUTBOUND, INBOUND
+  recipientMobile     String           @map("recipient_mobile")
+  language            String           @default("en")
+  messageCategory     String           @map("message_category")
+  renderedContent     String           @map("rendered_content")
+  whatsappMessageId   String?          @unique @map("whatsapp_message_id") // wamid from Meta
+  status              String           @default("QUEUED") // QUEUED, SCHEDULED, SUBMITTED, SENT, DELIVERED, READ, FAILED, SUPPRESSED, CANCELLED
+  providerMode        String           @default("DEMO") @map("provider_mode") // DEMO, PRODUCTION
+  submittedAt         DateTime?        @map("submitted_at")
+  sentAt              DateTime?        @map("sent_at")
+  deliveredAt         DateTime?        @map("delivered_at")
+  readAt              DateTime?        @map("read_at")
+  failedAt            DateTime?        @map("failed_at")
+  failureCode         String?          @map("failure_code")
+  failureReason       String?          @map("failure_reason")
+  retryCount          Int              @default(0) @map("retry_count")
+  isSyntheticDemo     Boolean          @default(false) @map("is_synthetic_demo")
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+  appointment         Appointment?     @relation(fields: [appointmentId], references: [id])
+  hospital            Hospital         @relation(fields: [hospitalId], references: [id])
+  template            MessageTemplate? @relation(fields: [templateId], references: [id])
+  patientResponses    PatientResponse[]
+
+  @@index([hospitalId, status])
+  @@index([appointmentId])
+  @@index([whatsappMessageId])
+  @@map("message_logs")
+}
+
+// 14. WhatsAppWebhooks
+model WhatsAppWebhook {
+  id                  String    @id @default(uuid())
+  eventIdempotencyKey String    @unique @map("event_idempotency_key")
+  eventType           String    @map("event_type") // MESSAGE_STATUS, INBOUND_MESSAGE, TEMPLATE_STATUS
+  whatsappMessageId   String?   @map("whatsapp_message_id")
+  senderMobile        String?   @map("sender_mobile")
+  signatureValid      Boolean   @default(false) @map("signature_valid")
+  rawPayload          Json      @map("raw_payload")
+  processingStatus    String    @default("PROCESSED") @map("processing_status") // RECEIVED, PROCESSED, DUPLICATE_IGNORED, FAILED
+  errorMessage        String?   @map("error_message")
+  processedAt         DateTime? @map("processed_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@index([whatsappMessageId])
+  @@index([eventType, processingStatus])
+  @@map("whatsapp_webhooks")
+}
+
+// 15. PatientResponses
+model PatientResponse {
+  id                  String      @id @default(uuid())
+  appointmentId       String      @map("appointment_id")
+  patientId           String      @map("patient_id")
+  hospitalId          String      @map("hospital_id")
+  messageLogId        String?     @map("message_log_id")
+  rawResponseText     String      @map("raw_response_text")
+  buttonPayload       String?     @map("button_payload")
+  mappedAction        String      @map("mapped_action") // CONFIRM, RESCHEDULE, CANCEL, TALK_TO_US, STOP, UNRECOGNIZED
+  responseChannel     String      @default("WHATSAPP_INTERACTIVE") @map("response_channel") // WHATSAPP_INTERACTIVE, WHATSAPP_TEXT, SIMULATOR
+  acknowledgementSent Boolean     @default(false) @map("acknowledgement_sent")
+  followUpTriggered   Boolean     @default(false) @map("follow_up_triggered")
+  status              String      @default("PROCESSED")
+  receivedAt          DateTime    @default(now()) @map("received_at")
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @updatedAt @map("updated_at")
+  appointment         Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patient             Patient     @relation(fields: [patientId], references: [id])
+  hospital            Hospital    @relation(fields: [hospitalId], references: [id])
+  messageLog          MessageLog? @relation(fields: [messageLogId], references: [id])
+
+  @@index([hospitalId, mappedAction])
+  @@index([appointmentId])
+  @@map("patient_responses")
+}
+
+// 16. Agents
+model Agent {
+  id              String         @id @default(uuid())
+  userId          String         @unique @map("user_id")
+  hospitalId      String         @map("hospital_id")
+  agentCode       String         @unique @map("agent_code")
+  teamName        String         @default("Altruist Call-Centre") @map("team_name")
+  languagesSpoken String[]       @map("languages_spoken")
+  activeQueueCount Int           @default(0) @map("active_queue_count")
+  resolvedCount   Int            @default(0) @map("resolved_count")
+  status          String         @default("AVAILABLE") // AVAILABLE, BUSY, OFFLINE
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hospital        Hospital       @relation(fields: [hospitalId], references: [id])
+  assignedTasks   FollowUpTask[]
+
+  @@index([hospitalId, status])
+  @@map("agents")
+}
+
+// 17. FollowUpTasks
+model FollowUpTask {
+  id                  String      @id @default(uuid())
+  taskCode            String      @unique @map("task_code")
+  appointmentId       String      @map("appointment_id")
+  patientId           String      @map("patient_id")
+  hospitalId          String      @map("hospital_id")
+  taskType            String      @map("task_type") // RESCHEDULE_REQUEST, CANCELLATION_REVIEW, TALK_TO_US_ASSISTANCE, UNCONFIRMED_FOLLOWUP, DELIVERY_FAILURE_FALLBACK, NOSHOW_REBOOKING_ASSIST
+  priority            String      @default("MEDIUM") // CRITICAL, HIGH, MEDIUM, LOW
+  assignedAgentId     String?     @map("assigned_agent_id")
+  status              String      @default("OPEN") // OPEN, IN_PROGRESS, ESCALATED, RESOLVED, REOPENED
+  triggerReason       String      @map("trigger_reason")
+  internalNotes       Json        @default("[]") @map("internal_notes")
+  resolutionNotes     String?     @map("resolution_notes")
+  altruistSyncStatus  String      @default("PENDING_EXPORT") @map("altruist_sync_status") // PENDING_EXPORT, EXPORTED_CSV, SYNCED_API, NOT_CONFIGURED
+  altruistExternalId  String?     @map("altruist_external_id")
+  escalatedAt         DateTime?   @map("escalated_at")
+  resolvedAt          DateTime?   @map("resolved_at")
+  resolvedBy          String?     @map("resolved_by")
+  isSyntheticDemo     Boolean     @default(false) @map("is_synthetic_demo")
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @updatedAt @map("updated_at")
+  appointment         Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patient             Patient     @relation(fields: [patientId], references: [id])
+  hospital            Hospital    @relation(fields: [hospitalId], references: [id])
+  assignedAgent       Agent?      @relation(fields: [assignedAgentId], references: [id])
+
+  @@index([hospitalId, status, priority])
+  @@index([assignedAgentId])
+  @@index([appointmentId])
+  @@map("follow_up_tasks")
+}
+
+// 18. AttendanceRecords
+model AttendanceRecord {
+  id                      String       @id @default(uuid())
+  externalVisitId         String       @unique @map("external_visit_id")
+  bookingId               String       @map("booking_id")
+  appointmentId           String?      @map("appointment_id") // nullable if UNMATCHED
+  hospitalId              String       @map("hospital_id")
+  patientIdentifier       String?      @map("patient_identifier")
+  outcomeStatus           String       @map("outcome_status") // ARRIVED, REGISTERED, COMPLETED, NO_SHOW, CANCELLED, UNMATCHED
+  matchStatus             String       @default("MATCHED") @map("match_status") // MATCHED, UNMATCHED
+  checkInTime             DateTime?    @map("check_in_time")
+  completedTime           DateTime?    @map("completed_time")
+  rebookingPromptEligible Boolean      @default(false) @map("rebooking_prompt_eligible")
+  rebookingPromptSent     Boolean      @default(false) @map("rebooking_prompt_sent")
+  sourceFeed              String       @default("HIS_OUTCOME_API") @map("source_feed")
+  status                  String       @default("RECONCILED")
+  reconciledBy            String?      @map("reconciled_by")
+  reconciledAt            DateTime     @default(now()) @map("reconciled_at")
+  createdAt               DateTime     @default(now()) @map("created_at")
+  updatedAt               DateTime     @updatedAt @map("updated_at")
+  appointment             Appointment? @relation(fields: [appointmentId], references: [id])
+  hospital                Hospital     @relation(fields: [hospitalId], references: [id])
+
+  @@index([hospitalId, outcomeStatus])
+  @@index([bookingId])
+  @@map("attendance_records")
+}
+
+// 19. IntegrationConfigurations
+model IntegrationConfiguration {
+  id                    String    @id @default(uuid())
+  hospitalId            String?   @map("hospital_id")
+  integrationType       String    @map("integration_type") // META_WHATSAPP, HIS_API, HIS_SFTP_CSV, ALTRUIST_CALLCENTRE
+  name                  String
+  mode                  String    @default("DEMO") // DEMO, PRODUCTION
+  endpointUrl           String?   @map("endpoint_url")
+  authType              String    @default("BEARER_TOKEN") @map("auth_type") // BEARER_TOKEN, API_KEY, BASIC_AUTH, HMAC_WEBHOOK, SFTP_KEY
+  credentialsConfigured Boolean   @default(false) @map("credentials_configured")
+  fieldMappings         Json      @default("{}") @map("field_mappings")
+  retryPolicy           Json      @default("{\"maxRetries\":3,\"backoffSeconds\":60}") @map("retry_policy")
+  connectionStatus      String    @default("AWAITING_CREDENTIALS") @map("connection_status") // CONNECTED, AWAITING_CREDENTIALS, CONNECTION_FAILED, DEMO_SIMULATED
+  lastConnectionTestAt  DateTime? @map("last_connection_test_at")
+  lastSuccessSyncAt     DateTime? @map("last_success_sync_at")
+  missingPrerequisites  String[]  @map("missing_prerequisites")
+  status                String    @default("ACTIVE")
+  updatedBy             String?   @map("updated_by")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  hospital              Hospital? @relation(fields: [hospitalId], references: [id])
+  logs                  IntegrationLog[]
+
+  @@unique([integrationType, hospitalId])
+  @@map("integration_configurations")
+}
+
+// 20. IntegrationLogs
+model IntegrationLog {
+  id                        String                    @id @default(uuid())
+  integrationConfigId       String?                   @map("integration_config_id")
+  hospitalId                String?                   @map("hospital_id")
+  integrationType           String                    @map("integration_type")
+  operation                 String                    // CONNECTION_TEST, APPOINTMENT_IMPORT, ATTENDANCE_SYNC, WHATSAPP_SEND, WEBHOOK_RECEIVE, ALTRUIST_HANDOFF
+  direction                 String                    @default("OUTBOUND") // INBOUND, OUTBOUND
+  status                    String                    // SUCCESS, FAILED, VALIDATION_ERROR, BLOCKED_MISSING_CREDENTIALS
+  httpStatusCode            Int?                      @map("http_status_code")
+  recordsProcessed          Int                       @default(0) @map("records_processed")
+  recordsFailed             Int                       @default(0) @map("records_failed")
+  sanitizedSummary          String                    @map("sanitized_summary")
+  errorDetails              String?                   @map("error_details")
+  durationMs                Int                       @default(0) @map("duration_ms")
+  createdAt                 DateTime                  @default(now()) @map("created_at")
+  updatedAt                 DateTime                  @updatedAt @map("updated_at")
+  integrationConfiguration  IntegrationConfiguration? @relation(fields: [integrationConfigId], references: [id])
+  hospital                  Hospital?                 @relation(fields: [hospitalId], references: [id])
+
+  @@index([integrationType, status, createdAt])
+  @@map("integration_logs")
+}
+
+// 21. SyncJobs
+model SyncJob {
+  id                String    @id @default(uuid())
+  hospitalId        String?   @map("hospital_id")
+  jobType           String    @map("job_type") // HIS_APPOINTMENT_POLL, HIS_CSV_IMPORT, HIS_ATTENDANCE_RECONCILE, META_TEMPLATE_SYNC, ALTRUIST_WORKLIST_EXPORT
+  source            String    // API, WEBHOOK, CSV_UPLOAD, SCHEDULED_CRON
+  status            String    @default("COMPLETED") // RUNNING, COMPLETED, PARTIAL_FAILURE, FAILED
+  totalRecords      Int       @default(0) @map("total_records")
+  insertedRecords   Int       @default(0) @map("inserted_records")
+  updatedRecords    Int       @default(0) @map("updated_records")
+  duplicateSkipped  Int       @default(0) @map("duplicate_skipped")
+  failedRecords     Int       @default(0) @map("failed_records")
+  failedDetails     Json      @default("[]") @map("failed_details")
+  startedAt         DateTime  @default(now()) @map("started_at")
+  completedAt       DateTime? @map("completed_at")
+  triggeredBy       String    @default("SYSTEM") @map("triggered_by")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  hospital          Hospital? @relation(fields: [hospitalId], references: [id])
+
+  @@index([hospitalId, jobType, createdAt])
+  @@map("sync_jobs")
+}
+
+// 22. HoldoutAssignments
+model HoldoutAssignment {
+  id                  String      @id @default(uuid())
+  appointmentId       String      @unique @map("appointment_id")
+  hospitalId          String      @map("hospital_id")
+  bookingId           String      @map("booking_id")
+  cohortGroup         String      @map("cohort_group") // TREATMENT, CONTROL
+  assignmentRule      String      @default("DETERMINISTIC_HASH_80_20") @map("assignment_rule")
+  deterministicHash   String      @map("deterministic_hash")
+  campaignsSuppressed Boolean     @default(false) @map("campaigns_suppressed")
+  isSyntheticDemo     Boolean     @default(true) @map("is_synthetic_demo")
+  status              String      @default("ACTIVE")
+  assignedAt          DateTime    @default(now()) @map("assigned_at")
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @updatedAt @map("updated_at")
+  appointment         Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  hospital            Hospital    @relation(fields: [hospitalId], references: [id])
+
+  @@index([hospitalId, cohortGroup])
+  @@map("holdout_assignments")
+}
+
+// 23. AuditLogs
+model AuditLog {
+  id            String    @id @default(uuid())
+  userId        String?   @map("user_id")
+  actorEmail    String?   @map("actor_email")
+  actorRole     String?   @map("actor_role")
+  hospitalId    String?   @map("hospital_id")
+  action        String    // USER_LOGIN, LOGIN_FAILED, PASSWORD_RESET, APPOINTMENT_IMPORTED, CONSENT_UPDATED, STOP_OPTOUT_PROCESSED, MESSAGE_DISPATCHED, TEMPLATE_UPDATED, TASK_RESOLVED, ATTENDANCE_RECONCILED, MODE_CHANGED, INTEGRATION_TESTED
+  entityType    String    @map("entity_type")
+  entityId      String?   @map("entity_id")
+  summary       String
+  ipAddress     String?   @map("ip_address")
+  metadata      Json?
+  status        String    @default("SUCCESS")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  user          User?     @relation(fields: [userId], references: [id])
+  hospital      Hospital? @relation(fields: [hospitalId], references: [id])
+
+  @@index([hospitalId, action, createdAt])
+  @@index([userId])
+  @@map("audit_logs")
+}
+
+// 24. SystemSettings
+model SystemSetting {
+  id            String   @id @default(uuid())
+  key           String   @unique
+  value         Json
+  category      String   @default("OPERATIONS") // OPERATIONS, SECURITY, RETENTION, ALERTS, SIMULATOR
+  description   String
+  status        String   @default("ACTIVE")
+  updatedBy     String?  @map("updated_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
+

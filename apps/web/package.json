@@ -1,0 +1,12 @@
+{
+  "name": "@anhvl/web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5173 --host",
+    "build": "vite build",
+    "preview": "vite preview --port 5173"
+  }
+}
+
