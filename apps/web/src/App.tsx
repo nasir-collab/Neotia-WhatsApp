@@ -41,6 +41,10 @@ import {
   LiveDemoSimulatorPage,
   ClientPresentationModePage,
 } from './pages/SimulatorAndPresentationPages';
+import {
+  DoctorDisruptionPage,
+  RetargetingConsolePage,
+} from './pages/CampaignsPages';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -146,6 +150,8 @@ function ProtectedRoutes() {
         <Route path="/architecture" element={<ArchitectureViewPage />} />
         <Route path="/simulator" element={<LiveDemoSimulatorPage />} />
         <Route path="/presentation" element={<ClientPresentationModePage />} />
+        <Route path="/doctor-disruptions" element={<DoctorDisruptionPage />} />
+        <Route path="/retargeting" element={<RetargetingConsolePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </DashboardLayout>

@@ -28,6 +28,8 @@ import {
   Layers,
   LogOut,
   AlertTriangle,
+  CalendarX,
+  Megaphone,
 } from 'lucide-react';
 import { apiRequest, clearAuthSession, getStoredUser, AuthSessionUser } from '../services/api';
 import { NeotiaBrandLogo, NeotiaCrossEmblem } from '../components/NeotiaBrandLogo';
@@ -106,6 +108,8 @@ export const DashboardLayout: React.FC<{
         { to: '/scheduler', label: 'Reminder Scheduler', icon: Clock },
         { to: '/responses', label: 'Patient Responses', icon: Reply },
         { to: '/consent', label: 'Consent & Opt-Out (STOP)', icon: ShieldCheck },
+        { to: '/doctor-disruptions', label: 'Doctor Cancel / Delay', icon: CalendarX },
+        { to: '/retargeting', label: 'Patient Re-Targeting', icon: Megaphone },
       ],
     },
     {

@@ -824,5 +824,201 @@ export function handleFallbackRequest(path: string, options: RequestInit = {}): 
     return { success: true, data: fresh.simulator };
   }
 
+  // 17. Doctor Disruptions & Multi-Segment Re-Targeting
+  if (!state.disruptionHistory) state.disruptionHistory = [];
+  if (!state.retargetingHistory) state.retargetingHistory = [];
+  if (!state.formLeads) {
+    state.formLeads = [
+      { id: 'lead-ntk-01', leadCode: 'WEB-NTK-901', fullName: 'Barnali Sengupta (Web Form Lead)', mobileNumber: '+919830088001', hospitalCode: 'ANHVL-NTK', hospitalCity: 'New Town, Kolkata', departmentInterest: 'Obstetrics & Gynaecology', preferredLanguage: 'bn', formSource: 'Website OPD Enquiry Form', submittedAt: new Date(Date.now() - 28 * 3600 * 1000).toISOString(), marketingOptIn: true, optOutStatus: false, nudgesSentLast14d: 0 },
+      { id: 'lead-ntk-02', leadCode: 'WEB-NTK-902', fullName: 'Sagnik Chowdhury (Web Form Lead)', mobileNumber: '+919830088002', hospitalCode: 'ANHVL-NTK', hospitalCity: 'New Town, Kolkata', departmentInterest: 'Paediatrics & Neonatology', preferredLanguage: 'en', formSource: 'Meta Click-to-Form Ad (Paediatrics)', submittedAt: new Date(Date.now() - 52 * 3600 * 1000).toISOString(), marketingOptIn: true, optOutStatus: false, nudgesSentLast14d: 1 },
+      { id: 'lead-ntk-03', leadCode: 'WEB-NTK-903', fullName: 'Roshni Banerjee (No Marketing Opt-In)', mobileNumber: '+919830088003', hospitalCode: 'ANHVL-NTK', hospitalCity: 'New Town, Kolkata', departmentInterest: 'Fetal Medicine', preferredLanguage: 'bn', formSource: 'Website Callback Widget (Unchecked)', submittedAt: new Date(Date.now() - 18 * 3600 * 1000).toISOString(), marketingOptIn: false, optOutStatus: false, nudgesSentLast14d: 0 },
+      { id: 'lead-rpr-01', leadCode: 'WEB-RPR-904', fullName: 'Komal Deshmukh (Web Form Lead)', mobileNumber: '+919752088004', hospitalCode: 'ANHVL-RPR', hospitalCity: 'Raipur', departmentInterest: 'Fertility & Reproductive Medicine', preferredLanguage: 'hi', formSource: 'Raipur Maternity Landing Page', submittedAt: new Date(Date.now() - 36 * 3600 * 1000).toISOString(), marketingOptIn: true, optOutStatus: false, nudgesSentLast14d: 0 },
+      { id: 'lead-rpr-02', leadCode: 'WEB-RPR-905', fullName: 'Sandeep Tiwari (Web Form Lead)', mobileNumber: '+919752088005', hospitalCode: 'ANHVL-RPR', hospitalCity: 'Raipur', departmentInterest: 'Paediatrics & Child Care', preferredLanguage: 'hi', formSource: 'Google Search OPD Form', submittedAt: new Date(Date.now() - 72 * 3600 * 1000).toISOString(), marketingOptIn: true, optOutStatus: false, nudgesSentLast14d: 0 },
+      { id: 'lead-rpr-03', leadCode: 'WEB-RPR-906', fullName: 'Neha Agrawal (Opted Out — STOP)', mobileNumber: '+919752088006', hospitalCode: 'ANHVL-RPR', hospitalCity: 'Raipur', departmentInterest: 'Obstetrics & Gynaecology', preferredLanguage: 'en', formSource: 'Website OPD Enquiry Form', submittedAt: new Date(Date.now() - 90 * 3600 * 1000).toISOString(), marketingOptIn: true, optOutStatus: true, nudgesSentLast14d: 1 },
+    ];
+  }
+
+  if (pathname === '/campaigns/doctor-disruptions/doctors' && method === 'GET') {
+    const hid = sp.get('hospitalId');
+    let appts = state.appointments || [];
+    if (hid && hid !== 'ALL') appts = appts.filter((a: any) => a.hospitalId === hid);
+    const map: Record<string, any> = {};
+    for (const a of appts) {
+      const k = `${a.hospitalId}:${a.doctorName}`;
+      if (!map[k]) {
+        map[k] = { doctorName: a.doctorName, department: a.department, hospitalId: a.hospitalId, hospitalCity: a.hospital?.city, activeBookingsCount: 0, dates: new Set() };
+      }
+      if (!['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(a.status)) map[k].activeBookingsCount += 1;
+      map[k].dates.add(new Date(a.appointmentDate).toISOString().split('T')[0]);
+    }
+    return {
+      success: true,
+      data: {
+        doctors: Object.values(map).map((d: any) => ({ ...d, dates: Array.from(d.dates).sort() })),
+        disruptionHistory: state.disruptionHistory,
+      },
+    };
+  }
+
+  if (pathname === '/campaigns/doctor-disruptions/preview' && method === 'GET') {
+    const hid = sp.get('hospitalId');
+    const doc = sp.get('doctorName');
+    const dt = sp.get('date');
+    const todayStr = new Date().toISOString().split('T')[0];
+    let appts = (state.appointments || []).filter(
+      (a: any) => a.doctorName === doc && !['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(a.status)
+    );
+    if (hid && hid !== 'ALL') appts = appts.filter((a: any) => a.hospitalId === hid);
+    if (dt && dt !== 'ALL_UPCOMING') appts = appts.filter((a: any) => new Date(a.appointmentDate).toISOString().split('T')[0] === dt);
+
+    const affectedPatients = appts.map((a: any) => {
+      const apptDateStr = new Date(a.appointmentDate).toISOString().split('T')[0];
+      const isSameDay = apptDateStr <= todayStr;
+      const pendingRemindersToStop = (a.scheduledMessages || []).filter((m: any) => ['SCHEDULED', 'QUEUED'].includes(m.status)).length;
+      const whatsappEligible = a.consentStatus === 'GRANTED';
+      return {
+        appointmentId: a.id,
+        bookingId: a.bookingId,
+        patientName: a.patientName,
+        mobileNumber: a.mobileNumber,
+        preferredLanguage: a.preferredLanguage,
+        hospitalCity: a.hospital?.city,
+        department: a.department,
+        appointmentDate: apptDateStr,
+        appointmentTime: a.appointmentTime,
+        currentStatus: a.status,
+        pendingRemindersToStop,
+        isSameDay,
+        whatsappEligible,
+        altruistCallbackRequired: isSameDay || !whatsappEligible,
+      };
+    });
+    return {
+      success: true,
+      data: {
+        doctorName: doc,
+        date: dt || 'ALL_UPCOMING',
+        totalAffected: affectedPatients.length,
+        totalPendingRemindersToStop: affectedPatients.reduce((acc: number, x: any) => acc + x.pendingRemindersToStop, 0),
+        sameDayAltruistEscalations: affectedPatients.filter((x: any) => x.altruistCallbackRequired).length,
+        whatsappEligibleCount: affectedPatients.filter((x: any) => x.whatsappEligible).length,
+        affectedPatients,
+      },
+    };
+  }
+
+  if (pathname === '/campaigns/doctor-disruptions/execute' && method === 'POST') {
+    const prev = handleFallbackRequest(
+      `/campaigns/doctor-disruptions/preview?doctorName=${encodeURIComponent(body.doctorName || '')}&date=${encodeURIComponent(body.date || 'ALL_UPCOMING')}&hospitalId=${encodeURIComponent(body.hospitalId || 'ALL')}`,
+      { method: 'GET' }
+    ).data;
+    let remindersStopped = 0;
+    let messagesSent = 0;
+    let altruistTasksCreated = 0;
+    for (const item of prev.affectedPatients || []) {
+      const appt = (state.appointments || []).find((a: any) => a.id === item.appointmentId);
+      if (appt) {
+        appt.status = 'RESCHEDULE_REQUESTED';
+        for (const sm of appt.scheduledMessages || []) {
+          if (['SCHEDULED', 'QUEUED'].includes(sm.status)) {
+            sm.status = 'CANCELLED';
+            sm.suppressionReason = `${body.disruptionType}_ADMIN_OVERRIDE`;
+            remindersStopped += 1;
+          }
+        }
+        if (item.whatsappEligible) messagesSent += 1;
+        if (item.altruistCallbackRequired) altruistTasksCreated += 1;
+      }
+    }
+    const rec = {
+      id: `disr-${Date.now()}`,
+      executedAt: new Date().toISOString(),
+      doctorName: body.doctorName,
+      disruptionType: body.disruptionType,
+      affectedCount: prev.totalAffected,
+      remindersStopped,
+      messagesSent,
+      altruistTasksCreated,
+    };
+    state.disruptionHistory.unshift(rec);
+    saveRuntimeState(state);
+    return { success: true, data: rec };
+  }
+
+  if (pathname === '/campaigns/retargeting/cohorts' && method === 'GET') {
+    const hid = sp.get('hospitalId');
+    let appts = state.appointments || [];
+    const selHosp = (state.hospitals || []).find((h: any) => h.id === hid);
+    if (hid && hid !== 'ALL') appts = appts.filter((a: any) => a.hospitalId === hid);
+
+    const noShows = appts
+      .filter((a: any) => a.status === 'NO_SHOW' || a.attendanceStatus === 'NO_SHOW')
+      .map((a: any) => {
+        const isControl = a.holdoutAssignment?.cohortGroup === 'CONTROL';
+        const eligible = a.consentStatus === 'GRANTED' && !isControl;
+        return {
+          id: a.id, referenceCode: a.bookingId, patientName: a.patientName, mobileNumber: a.mobileNumber,
+          hospitalCity: a.hospital?.city, department: a.department, doctorName: a.doctorName, preferredLanguage: a.preferredLanguage,
+          eventDate: new Date(a.appointmentDate).toISOString().split('T')[0], metaCategory: 'UTILITY',
+          consentRequired: 'Appointment Service Consent', eligible, blockReason: isControl ? 'New Town Pilot CONTROL Holdout' : !eligible ? 'Opted Out (STOP)' : null,
+        };
+      });
+
+    const cancelled = appts
+      .filter((a: any) => ['CANCELLED', 'CANCELLATION_REQUESTED'].includes(a.status))
+      .map((a: any, idx: number) => {
+        const hasMkt = idx % 3 !== 2;
+        const eligible = a.consentStatus === 'GRANTED' && hasMkt;
+        return {
+          id: a.id, referenceCode: a.bookingId, patientName: a.patientName, mobileNumber: a.mobileNumber,
+          hospitalCity: a.hospital?.city, department: a.department, doctorName: a.doctorName, preferredLanguage: a.preferredLanguage,
+          eventDate: new Date(a.appointmentDate).toISOString().split('T')[0], metaCategory: 'MARKETING',
+          consentRequired: 'Explicit Marketing Opt-In', eligible, blockReason: !hasMkt ? 'Missing Explicit Marketing Opt-In' : null,
+        };
+      });
+
+    const leads = (state.formLeads || [])
+      .filter((l: any) => !selHosp || l.hospitalCode === selHosp.code)
+      .map((l: any) => {
+        const eligible = l.marketingOptIn && !l.optOutStatus && l.nudgesSentLast14d < 2;
+        return {
+          id: l.id, referenceCode: l.leadCode, patientName: l.fullName, mobileNumber: l.mobileNumber,
+          hospitalCity: l.hospitalCity, department: l.departmentInterest, doctorName: l.formSource, preferredLanguage: l.preferredLanguage,
+          eventDate: l.submittedAt.split('T')[0], metaCategory: 'MARKETING',
+          consentRequired: 'Web-Form Marketing Checkbox Opt-In', eligible,
+          blockReason: l.optOutStatus ? 'Opted Out (STOP)' : !l.marketingOptIn ? 'Web Form Marketing Checkbox Unchecked' : l.nudgesSentLast14d >= 2 ? '14-Day Frequency Cap Reached' : null,
+        };
+      });
+
+    return {
+      success: true,
+      data: {
+        segments: {
+          NO_SHOW_UNREBOOKED: { key: 'NO_SHOW_UNREBOOKED', title: '1. Verified No-Shows Who Didn’t Rebook', metaCategoryRule: 'UTILITY (≤72h tied to missed booking) / MARKETING (>72h follow-up)', consentRule: 'Active Service Consent + Not in Pilot Control Holdout', total: noShows.length, eligibleCount: noShows.filter((x: any) => x.eligible).length, blockedCount: noShows.filter((x: any) => !x.eligible).length, records: noShows },
+          CANCELLED_NO_SLOT: { key: 'CANCELLED_NO_SLOT', title: '2. Cancelled Patients Without a New Slot', metaCategoryRule: 'MARKETING (Meta prohibits re-soliciting cancelled bookings as Utility)', consentRule: 'Separate Explicit Marketing Opt-In required + Instant STOP', total: cancelled.length, eligibleCount: cancelled.filter((x: any) => x.eligible).length, blockedCount: cancelled.filter((x: any) => !x.eligible).length, records: cancelled },
+          UNCONVERTED_FORM_LEADS: { key: 'UNCONVERTED_FORM_LEADS', title: '3. Website / Ad Form-Fillers Who Never Booked', metaCategoryRule: 'MARKETING (Strict — no confirmed clinical transaction exists)', consentRule: 'Explicit Form Checkbox Opt-In + Max 2 nudges per 14 days', total: leads.length, eligibleCount: leads.filter((x: any) => x.eligible).length, blockedCount: leads.filter((x: any) => !x.eligible).length, records: leads },
+        },
+        campaignHistory: state.retargetingHistory,
+      },
+    };
+  }
+
+  if (pathname === '/campaigns/retargeting/launch' && method === 'POST') {
+    const cohorts = handleFallbackRequest(`/campaigns/retargeting/cohorts?hospitalId=${body.hospitalId || 'ALL'}`, { method: 'GET' }).data;
+    const seg = cohorts.segments[body.segment];
+    const cmp = {
+      id: `cmp-${Date.now()}`,
+      launchedAt: new Date().toISOString(),
+      segment: body.segment,
+      segmentTitle: seg?.title || body.segment,
+      metaCategory: body.segment === 'NO_SHOW_UNREBOOKED' ? 'UTILITY / MARKETING' : 'MARKETING',
+      dispatchedCount: seg?.eligibleCount || 0,
+      suppressedCount: seg?.blockedCount || 0,
+    };
+    state.retargetingHistory.unshift(cmp);
+    saveRuntimeState(state);
+    return { success: true, data: cmp };
+  }
+
   return { success: true, data: {} };
 }

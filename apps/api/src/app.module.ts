@@ -36,6 +36,8 @@ import { ReportsController } from './reports/reports.controller';
 import { SimulatorService } from './simulator/simulator.service';
 import { SimulatorController } from './simulator/simulator.controller';
 import { SettingsController } from './settings/settings.controller';
+import { CampaignsService } from './campaigns/campaigns.service';
+import { CampaignsController } from './campaigns/campaigns.controller';
 
 @Module({
   controllers: [
@@ -58,6 +60,7 @@ import { SettingsController } from './settings/settings.controller';
     AuditController,
     SimulatorController,
     SettingsController,
+    CampaignsController,
   ],
   providers: [
     PrismaService,
@@ -75,6 +78,7 @@ import { SettingsController } from './settings/settings.controller';
     IntegrationsService,
     ReportsService,
     SimulatorService,
+    CampaignsService,
     {
       provide: APP_GUARD,
       useClass: JwtRbacGuard,
