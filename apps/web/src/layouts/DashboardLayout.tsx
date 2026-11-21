@@ -27,12 +27,12 @@ import {
   Presentation,
   Layers,
   LogOut,
-  AlertTriangle,
   CalendarX,
   Megaphone,
+  ChevronDown,
 } from 'lucide-react';
 import { apiRequest, clearAuthSession, getStoredUser, AuthSessionUser } from '../services/api';
-import { NeotiaBrandLogo, NeotiaCrossEmblem } from '../components/NeotiaBrandLogo';
+import { NeotiaBrandLogo } from '../components/NeotiaBrandLogo';
 
 interface HospitalFilterContextType {
   selectedHospitalId: string;
@@ -44,7 +44,7 @@ interface HospitalFilterContextType {
 
 export const HospitalFilterContext = createContext<HospitalFilterContextType>({
   selectedHospitalId: 'ALL',
-  setSelectedHospitalId: () => { },
+  setSelectedHospitalId: () => {},
   hospitals: [],
   user: null,
   operatingMode: 'DEMO',
@@ -91,62 +91,69 @@ export const DashboardLayout: React.FC<{
 
   const navSections = [
     {
-      title: 'Core Operations',
+      title: 'Operations',
       items: [
         { to: '/', label: 'Executive Overview', icon: LayoutDashboard },
-        { to: '/appointments', label: 'Appointment Management', icon: CalendarCheck },
-        { to: '/patients', label: 'Patient Profiles (Restricted)', icon: Users },
-        { to: '/attendance', label: 'Attendance Reconciliation', icon: CheckCircle2 },
-        { to: '/no-shows', label: 'No-Show & Rebooking', icon: UserX },
+        { to: '/appointments', label: 'Appointments', icon: CalendarCheck },
+        { to: '/patients', label: 'Patient Directory', icon: Users },
+        { to: '/attendance', label: 'HIS Attendance', icon: CheckCircle2 },
+        { to: '/no-shows', label: 'No-Show Recovery', icon: UserX },
       ],
     },
     {
-      title: 'WhatsApp & Orchestration',
+      title: 'WhatsApp Engagement',
       items: [
-        { to: '/messages', label: 'WhatsApp Comm Centre', icon: MessageSquare },
-        { to: '/templates', label: 'Template Management', icon: FileText },
-        { to: '/scheduler', label: 'Reminder Scheduler', icon: Clock },
-        { to: '/responses', label: 'Patient Responses', icon: Reply },
-        { to: '/consent', label: 'Consent & Opt-Out (STOP)', icon: ShieldCheck },
+        { to: '/messages', label: 'Message Logs', icon: MessageSquare },
+        { to: '/templates', label: 'Templates', icon: FileText },
+        { to: '/scheduler', label: 'Reminder Queue', icon: Clock },
+        { to: '/responses', label: 'Patient Replies', icon: Reply },
+        { to: '/consent', label: 'Consent & STOP', icon: ShieldCheck },
         { to: '/doctor-disruptions', label: 'Doctor Cancel / Delay', icon: CalendarX },
-        { to: '/retargeting', label: 'Patient Re-Targeting', icon: Megaphone },
+        { to: '/retargeting', label: 'Re-Targeting', icon: Megaphone },
       ],
     },
     {
-      title: 'Call-Centre & Altruist',
+      title: 'Altruist Call-Centre',
       items: [
         { to: '/followups', label: 'Follow-Up Worklist', icon: PhoneCall },
-        { to: '/agents', label: 'Agent Management', icon: Headphones },
+        { to: '/agents', label: 'Agent Roster', icon: Headphones },
       ],
     },
     {
       title: 'Integrations & Pilot',
       items: [
-        { to: '/integrations/his', label: 'HIS Integration Monitor', icon: Server },
-        { to: '/integrations/whatsapp', label: 'WhatsApp Cloud Settings', icon: Smartphone },
-        { to: '/integrations/altruist', label: 'Altruist Settings', icon: Share2 },
-        { to: '/pilot', label: 'Pilot / Control Group', icon: FlaskConical },
-        { to: '/reports', label: 'Reports & Analytics', icon: BarChart3 },
+        { to: '/integrations/his', label: 'HIS Connector', icon: Server },
+        { to: '/integrations/whatsapp', label: 'WhatsApp Cloud API', icon: Smartphone },
+        { to: '/integrations/altruist', label: 'Altruist Handoff', icon: Share2 },
+        { to: '/pilot', label: 'New Town Pilot', icon: FlaskConical },
+        { to: '/reports', label: 'Reports & Exports', icon: BarChart3 },
       ],
     },
     {
-      title: 'Governance & Architecture',
+      title: 'Administration',
       items: [
-        { to: '/hospitals', label: 'Hospital Configuration', icon: Building2 },
-        { to: '/users', label: 'User & Role Management', icon: UserCog },
-        { to: '/audit-logs', label: 'Security Audit Logs', icon: FileSearch },
+        { to: '/hospitals', label: 'Hospital Units', icon: Building2 },
+        { to: '/users', label: 'Users & RBAC', icon: UserCog },
+        { to: '/audit-logs', label: 'Audit Trail', icon: FileSearch },
         { to: '/settings', label: 'System Settings', icon: Settings },
-        { to: '/architecture', label: 'Technology Architecture', icon: Layers },
+        { to: '/architecture', label: 'Architecture', icon: Layers },
       ],
     },
     {
-      title: 'Simulator & Client Showcase',
+      title: 'Interactive Showcase',
       items: [
-        { to: '/simulator', label: 'Live Demo Simulator', icon: PlayCircle },
-        { to: '/presentation', label: 'Client Presentation Mode', icon: Presentation },
+        { to: '/simulator', label: 'Journey Simulator', icon: PlayCircle },
+        { to: '/presentation', label: 'Client Walkthrough', icon: Presentation },
       ],
     },
   ];
+
+  const userInitials = (user?.fullName || 'AS')
+    .split(' ')
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase();
 
   return (
     <HospitalFilterContext.Provider
@@ -158,27 +165,29 @@ export const DashboardLayout: React.FC<{
         operatingMode,
       }}
     >
-      <div className="min-h-screen flex bg-[#F4F8FC] text-slate-900">
-        {/* Sidebar in Bhagirathi Deep Medical Blue (#062646 -> #093562) */}
-        <aside className="w-64 bg-gradient-to-b from-[#062646] via-[#08315A] to-[#051E38] text-slate-100 flex flex-col shrink-0 border-r border-[#0D4A80]/50 shadow-xl">
-          {/* Official Neotia Bhagirathi Logo Header */}
-          <div className="p-4 border-b border-white/10 bg-[#041A30]/50 flex flex-col items-center">
-            <NeotiaBrandLogo size="md" className="w-full items-center" />
-            <div className="mt-2.5 w-full flex items-center justify-between px-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#F39200]">
-                Patient Engagement
-              </span>
-              <span className="text-[10px] font-medium text-sky-200/80">
-                Plan D Media
-              </span>
+      <div className="min-h-screen flex bg-[#F8FAFC] text-slate-900">
+        {/* Clean Light Editorial Sidebar with Seamless Prominent Official Logo */}
+        <aside className="w-[268px] bg-white border-r border-slate-200/90 flex flex-col shrink-0 sticky top-0 h-screen">
+          {/* Top Brand Signature Stripe */}
+          <div className="h-[3px] w-full flex shrink-0">
+            <div className="w-[34%] bg-[#F39200]" />
+            <div className="flex-1 bg-[#0B4F8A]" />
+          </div>
+
+          {/* Prominent Unclipped Official Neotia Bhagirathi Logo Header */}
+          <div className="px-5 pt-4 pb-3.5 border-b border-slate-100 bg-white flex flex-col items-start">
+            <NeotiaBrandLogo size="lg" className="w-full" />
+            <div className="mt-1.5 flex items-center justify-between w-full text-[11px] text-slate-400">
+              <span className="font-medium text-slate-500">WhatsApp Engagement</span>
+              <span>Plan D Media</span>
             </div>
           </div>
 
-          <nav className="flex-1 overflow-y-auto py-3 px-2.5 space-y-4">
+          {/* Quiet, Scannable Navigation */}
+          <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
             {navSections.map((section) => (
               <div key={section.title}>
-                <div className="px-2.5 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-sky-300/70 flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-[#F39200]" />
+                <div className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                   {section.title}
                 </div>
                 <div className="space-y-0.5">
@@ -190,14 +199,26 @@ export const DashboardLayout: React.FC<{
                         to={item.to}
                         end={item.to === '/'}
                         className={({ isActive }) =>
-                          `flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all ${isActive
-                            ? 'bg-gradient-to-r from-[#F39200] to-[#E07B00] text-white font-semibold shadow-md shadow-[#F39200]/20'
-                            : 'text-sky-100/85 hover:bg-[#0B4F8A]/60 hover:text-white'
+                          `relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] transition-colors ${
+                            isActive
+                              ? 'bg-[#EFF6FC] text-[#0B4F8A] font-semibold'
+                              : 'text-slate-600 font-medium hover:bg-slate-50 hover:text-slate-900'
                           }`
                         }
                       >
-                        <Icon className="w-3.5 h-3.5 shrink-0" />
-                        <span className="truncate">{item.label}</span>
+                        {({ isActive }) => (
+                          <>
+                            {isActive && (
+                              <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-[#F39200]" />
+                            )}
+                            <Icon
+                              className={`w-4 h-4 shrink-0 ${
+                                isActive ? 'text-[#0B4F8A]' : 'text-slate-400'
+                              }`}
+                            />
+                            <span className="truncate">{item.label}</span>
+                          </>
+                        )}
                       </NavLink>
                     );
                   })}
@@ -206,81 +227,79 @@ export const DashboardLayout: React.FC<{
             ))}
           </nav>
 
-          <div className="p-3.5 border-t border-white/10 bg-[#041A30]/80">
-            <div className="flex items-center gap-2 mb-1">
-              <NeotiaCrossEmblem className="w-4 h-4 shrink-0" />
-              <div className="text-xs font-semibold text-white truncate">
-                {user?.fullName || 'User'}
+          {/* Refined User Profile Footer */}
+          <div className="p-3.5 border-t border-slate-100 bg-slate-50/70">
+            <div className="flex items-center gap-2.5 mb-2.5">
+              <div className="w-8 h-8 rounded-full bg-[#0B4F8A] text-white text-xs font-bold flex items-center justify-center shrink-0">
+                {userInitials}
               </div>
-            </div>
-            <div className="text-[11px] text-[#F39200] font-medium truncate">
-              {user?.roleName} ({user?.roleCode})
+              <div className="min-w-0">
+                <div className="text-xs font-semibold text-slate-900 truncate">
+                  {user?.fullName || 'Administrator'}
+                </div>
+                <div className="text-[11px] text-slate-500 truncate">
+                  {user?.roleName || user?.roleCode}
+                </div>
+              </div>
             </div>
             <button
               onClick={handleLogout}
-              className="mt-2.5 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0B4F8A]/60 hover:bg-red-700 text-white border border-sky-400/20 text-xs font-semibold transition-colors"
+              className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium transition-colors"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              Sign Out / Switch Role
+              <LogOut className="w-3.5 h-3.5 text-slate-400" />
+              Switch Role / Sign Out
             </button>
           </div>
         </aside>
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0">
-          {/* Dual-Color Neotia Orange & Bhagirathi Blue Top Accent Bar */}
-          <div
-            className="h-1 w-full"
-            style={{
-              background: 'linear-gradient(90deg, #F39200 0%, #F39200 32%, #0D68AF 32%, #0B4F8A 100%)',
-            }}
-          />
-
-          {/* Top Operational Header & Mode Banner */}
-          <header className="bg-white border-b border-slate-200/90 px-6 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-20 shadow-sm">
+          {/* Calm, Airy Top Bar */}
+          <header className="h-16 bg-white/95 backdrop-blur border-b border-slate-200/90 px-8 flex items-center justify-between gap-4 sticky top-0 z-20">
             <div className="flex items-center gap-3">
-              <NeotiaCrossEmblem className="w-6 h-6 hidden sm:block" />
               {operatingMode === 'DEMO' ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#FFF4E5] text-[#B86200] border border-[#F39200]/40">
-                  <AlertTriangle className="w-3.5 h-3.5 text-[#F39200]" />
-                  DEMO MODE — ISOLATED SYNTHETIC DATA (NO LIVE PATIENT MESSAGES)
+                <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium bg-[#FFF7EB] text-[#B45309] border border-[#F39200]/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#F39200]" />
+                  Demo Sandbox · Synthetic Data
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
-                  PRODUCTION MODE — VERIFIED META & HIS INTEGRATIONS
+                <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  Production · Verified Meta & HIS
                 </span>
               )}
-              <span className="text-xs text-slate-500 hidden lg:inline font-medium">
-                DB: <strong className="text-[#0B4F8A]">{healthRes?.database?.engine || 'PostgreSQL 16'}</strong> • Queue:{' '}
-                <strong className="text-[#0B4F8A]">{healthRes?.scheduler?.backend || 'Active'}</strong>
+              <span className="text-xs text-slate-400 hidden lg:inline">
+                PostgreSQL 16 Connected · Persistent Reminder Worker Active
               </span>
             </div>
 
             <div className="flex items-center gap-3">
-              <label className="text-xs font-bold text-[#0B4F8A]">
-                Hospital Unit:
-              </label>
-              <select
-                value={user?.hospitalId || selectedHospitalId}
-                disabled={Boolean(user?.hospitalId)}
-                onChange={(e) => setSelectedHospitalId(e.target.value)}
-                className="text-xs font-semibold border-2 border-[#0B4F8A]/25 rounded-lg px-3 py-1.5 bg-[#F4F8FC] text-[#062646] focus:outline-none focus:ring-2 focus:ring-[#F39200] disabled:bg-slate-100"
-              >
-                {!user?.hospitalId && (
-                  <option value="ALL">All ANHVL Units (New Town Kolkata & Raipur)</option>
-                )}
-                {hospitals.map((h: any) => (
-                  <option key={h.id} value={h.id}>
-                    {h.city} — {h.name} ({h.code})
-                  </option>
-                ))}
-              </select>
+              <span className="text-xs font-medium text-slate-500 hidden sm:inline">
+                Hospital Unit
+              </span>
+              <div className="relative">
+                <select
+                  value={user?.hospitalId || selectedHospitalId}
+                  disabled={Boolean(user?.hospitalId)}
+                  onChange={(e) => setSelectedHospitalId(e.target.value)}
+                  className="appearance-none text-xs font-semibold border border-slate-200 hover:border-slate-300 rounded-lg pl-3 pr-8 py-2 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0B4F8A]/20 focus:border-[#0B4F8A] disabled:bg-slate-50 cursor-pointer transition"
+                >
+                  {!user?.hospitalId && (
+                    <option value="ALL">All Units (New Town Kolkata & Raipur)</option>
+                  )}
+                  {hospitals.map((h: any) => (
+                    <option key={h.id} value={h.id}>
+                      {h.city} ({h.code})
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
+              </div>
             </div>
           </header>
 
-          {/* Page Outlet */}
-          <main className="flex-1 p-6 overflow-x-hidden">
+          {/* Spacious Editorial Main Canvas */}
+          <main className="flex-1 px-8 py-7 max-w-[1440px] w-full mx-auto overflow-x-hidden">
             {children || <Outlet />}
           </main>
         </div>

@@ -4,40 +4,45 @@
 
 :root {
   --neotia-orange: #F39200;
-  --neotia-orange-dark: #D97E00;
-  --neotia-orange-soft: #FFF4E5;
+  --neotia-orange-hover: #DC8300;
+  --neotia-orange-tint: #FFF7EB;
   --bhagirathi-blue: #0B4F8A;
-  --bhagirathi-royal: #0D68AF;
-  --bhagirathi-navy: #062646;
-  --bhagirathi-sky: #F4F8FC;
+  --bhagirathi-blue-dark: #073966;
+  --bhagirathi-blue-tint: #EFF6FC;
+  --surface-canvas: #F8FAFC;
+  --surface-card: #FFFFFF;
+  --border-subtle: #E2E8F0;
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background-color: var(--bhagirathi-sky);
-  color: #0f172a;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--surface-canvas);
+  color: #0F172A;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-::selection {
-  background-color: #F39200;
-  color: #ffffff;
+h1, h2, h3, .font-display {
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.02em;
 }
 
-/* Custom sleek medical scrollbar */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtle, quiet scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #0B4F8A;
+  background: #CBD5E1;
   border-radius: 9999px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #F39200;
+  background: #94A3B8;
 }
