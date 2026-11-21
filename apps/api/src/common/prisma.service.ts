@@ -32,6 +32,7 @@ function checkTcpPort(port: number, host = '127.0.0.1'): Promise<boolean> {
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private pgLiteDb: any = null;
   private pgSocketServer: any = null;
+  private keepAliveTimer: NodeJS.Timeout | null = null;
   public engineMode: 'EXTERNAL_POSTGRES' | 'EMBEDDED_POSTGRES_16' = 'EXTERNAL_POSTGRES';
 
   constructor() {
@@ -73,9 +74,20 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
     await this.$connect();
     await seedDatabase(this);
+
+    if (this.engineMode === 'EMBEDDED_POSTGRES_16') {
+      this.keepAliveTimer = setInterval(() => {
+        this.$queryRaw`SELECT 1`.catch(() => {});
+      }, 30_000);
+      this.keepAliveTimer.unref?.();
+    }
   }
 
   async onModuleDestroy() {
+    if (this.keepAliveTimer) {
+      clearInterval(this.keepAliveTimer);
+      this.keepAliveTimer = null;
+    }
     await this.$disconnect();
     if (this.pgSocketServer) {
       await this.pgSocketServer.stop();
