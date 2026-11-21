@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { apiRequest, getStoredToken, getStoredUser, setAuthSession } from './services/api';
 import { DashboardLayout } from './layouts/DashboardLayout';
@@ -159,14 +159,18 @@ function ProtectedRoutes() {
 }
 
 export function App() {
+  const isGitHubPages =
+    typeof window !== 'undefined' && window.location.hostname.endsWith('github.io');
+  const RouterComponent = isGitHubPages ? HashRouter : BrowserRouter;
+
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <RouterComponent>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/*" element={<ProtectedRoutes />} />
         </Routes>
-      </BrowserRouter>
+      </RouterComponent>
     </QueryClientProvider>
   );
 }

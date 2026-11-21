@@ -57,7 +57,7 @@ export const NeotiaBrandLogo: React.FC<{
         }}
       >
         <img
-          src="/neotia-logo.png"
+          src={`${import.meta.env.BASE_URL}neotia-logo.png`}
           alt="Neotia Bhagirathi Woman and Child Care Centre"
           className="w-full h-[185%] object-cover object-center select-none pointer-events-none"
         />
