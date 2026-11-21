@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import {
   PieChart,
   Pie,
@@ -41,6 +42,8 @@ export const DoctorDisruptionPage: React.FC = () => {
   const [delayMinutes, setDelayMinutes] = useState(60);
   const [reason, setReason] = useState('Emergency OT / Unavoidable clinical schedule adjustment');
   const [banner, setBanner] = useState<string | null>(null);
+  const [selectedPreviewAction, setSelectedPreviewAction] = useState<'NEXT_SLOT' | 'ANOTHER_DOCTOR' | 'CALL_ME' | null>(null);
+  const [lastExecution, setLastExecution] = useState<any>(null);
 
   const hospParam = selectedHospitalId && selectedHospitalId !== 'ALL' ? `hospitalId=${selectedHospitalId}` : '';
 
@@ -88,6 +91,7 @@ export const DoctorDisruptionPage: React.FC = () => {
       }),
     onSuccess: (res) => {
       const d = res.data;
+      setLastExecution(d);
       setBanner(
         `Broadcast executed for ${d.doctorName}: Stopped ${d.remindersStopped} pending reminders, sent ${d.messagesSent} WhatsApp Utility messages (Next Slot / Another Doctor / Call Me), and escalated ${d.altruistTasksCreated} same-day/priority cases to Altruist.`
       );
@@ -269,22 +273,86 @@ export const DoctorDisruptionPage: React.FC = () => {
               {disruptionType === 'DOCTOR_DELAYED' ? `delayed by ${delayMinutes} mins` : 'cancelled/rescheduled'}. Please choose how you would like to proceed:"
             </p>
             <div className="flex flex-wrap gap-1.5 pt-1">
-              <span className="px-2.5 py-1 rounded bg-[#0B4F8A] text-white font-semibold">Next Available Slot</span>
-              <span className="px-2.5 py-1 rounded bg-[#0B4F8A] text-white font-semibold">See Another Doctor</span>
-              <span className="px-2.5 py-1 rounded bg-[#F39200] text-white font-semibold">Call Me (Altruist)</span>
+              {[
+                { id: 'NEXT_SLOT', label: 'Next Available Slot', color: 'bg-[#0B4F8A] hover:bg-[#0D68AF]' },
+                { id: 'ANOTHER_DOCTOR', label: 'See Another Doctor', color: 'bg-[#0B4F8A] hover:bg-[#0D68AF]' },
+                { id: 'CALL_ME', label: 'Call Me (Altruist)', color: 'bg-[#F39200] hover:bg-[#E07B00]' },
+              ].map((btn) => (
+                <button
+                  key={btn.id}
+                  type="button"
+                  onClick={() => setSelectedPreviewAction(btn.id as any)}
+                  className={`px-2.5 py-1 rounded text-white font-semibold transition cursor-pointer ${btn.color} ${
+                    selectedPreviewAction === btn.id ? 'ring-2 ring-white shadow-md scale-[1.02]' : ''
+                  }`}
+                >
+                  {btn.label}
+                </button>
+              ))}
             </div>
+            {selectedPreviewAction && (
+              <div className="mt-2 p-2.5 rounded-lg bg-slate-800 border border-sky-400/30 text-[11px] text-sky-100">
+                <strong className="text-[#FFB74D] block mb-0.5">
+                  Simulated Patient Tap → {selectedPreviewAction.replace('_', ' ')}:
+                </strong>
+                {selectedPreviewAction === 'NEXT_SLOT' &&
+                  'Sets booking to RESCHEDULE_REQUESTED (never auto-allocates slots), sends multilingual acknowledgement, and queues High-Priority Altruist callback with next available slot preferences.'}
+                {selectedPreviewAction === 'ANOTHER_DOCTOR' &&
+                  'Routes to Altruist Desk with same-department alternate consultant list (e.g., OB-GYN / Paediatrics) so agent confirms replacement slot in HIS.'}
+                {selectedPreviewAction === 'CALL_ME' &&
+                  'Creates CRITICAL-priority Altruist callback task immediately (2-hour SLA; immediate for same-day OPD visits) and notifies patient that a care coordinator will call shortly.'}
+              </div>
+            )}
           </div>
 
           <button
+            type="button"
             disabled={executeMutation.isPending || !preview || preview.totalAffected === 0}
             onClick={() => executeMutation.mutate()}
-            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#F39200] to-[#E07B00] hover:from-[#E07B00] hover:to-[#CC6E00] disabled:opacity-40 text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition"
+            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#F39200] to-[#E07B00] hover:from-[#E07B00] hover:to-[#CC6E00] disabled:opacity-40 text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition cursor-pointer"
           >
             <Send className="w-4 h-4" />
             {executeMutation.isPending
               ? 'Stopping Reminders & Dispatching Broadcast...'
               : `Stop ${preview?.totalPendingRemindersToStop ?? 0} Reminders & Notify ${preview?.totalAffected ?? 0} Affected Patients`}
           </button>
+
+          {lastExecution && (
+            <div className="p-3.5 rounded-xl bg-emerald-50 border-2 border-emerald-500 text-emerald-950 text-xs space-y-2">
+              <div className="font-bold flex items-center gap-1.5 text-emerald-800">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                Disruption Broadcast Executed for {lastExecution.doctorName}
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-white rounded-lg p-2 border border-emerald-200">
+                  <div className="text-base font-extrabold text-[#0B4F8A]">{lastExecution.remindersStopped}</div>
+                  <div className="text-[10px] text-slate-600">Reminders Halted</div>
+                </div>
+                <div className="bg-white rounded-lg p-2 border border-emerald-200">
+                  <div className="text-base font-extrabold text-emerald-700">{lastExecution.messagesSent}</div>
+                  <div className="text-[10px] text-slate-600">WA Alerts Sent</div>
+                </div>
+                <div className="bg-white rounded-lg p-2 border border-emerald-200">
+                  <div className="text-base font-extrabold text-[#D97E00]">{lastExecution.altruistTasksCreated}</div>
+                  <div className="text-[10px] text-slate-600">Altruist Calls</div>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Link
+                  to="/messages"
+                  className="px-3 py-1 rounded-md bg-[#0B4F8A] text-white font-semibold text-[11px] hover:bg-[#0D68AF]"
+                >
+                  View Sent WhatsApp Alerts →
+                </Link>
+                <Link
+                  to="/followups"
+                  className="px-3 py-1 rounded-md bg-[#F39200] text-white font-semibold text-[11px] hover:bg-[#E07B00]"
+                >
+                  Open Altruist Callback Queue →
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right: Affected Patients Live Impact Preview */}
