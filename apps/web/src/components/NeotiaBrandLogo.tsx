@@ -2,13 +2,12 @@ import React from 'react';
 
 export const NEOTIA_PALETTE = {
   neotiaOrange: '#F39200',
-  neotiaOrangeDark: '#DC8300',
-  neotiaOrangeLight: '#FFF7EB',
+  neotiaGold: '#E68A00',
+  neotiaChampagne: '#FFF8EE',
   bhagirathiBlue: '#0B4F8A',
-  bhagirathiRoyal: '#1565A8',
-  bhagirathiNavy: '#073966',
-  bhagirathiSky: '#EFF6FC',
-  whatsappEmerald: '#059669',
+  bhagirathiDeep: '#072A4D',
+  bhagirathiMist: '#F0F6FC',
+  emeraldClinical: '#0F766E',
 };
 
 /**
@@ -27,48 +26,41 @@ export const NeotiaCrossEmblem: React.FC<{ className?: string }> = ({ className 
 
 /**
  * Renders the official Neotia Bhagirathi Woman and Child Care Centre logo
- * at full unclipped clarity using object-contain on a seamless white surface.
- * Because the source PNG is square with top/bottom whitespace, we use a clean
- * negative vertical trim so the full horizontal lockup is large, sharp, and prominent.
+ * cleanly unclipped and prominently sized on a pure white plinth.
+ * Note: The source PNG is 200x200 with ~30% whitespace top/bottom and ~8% side padding.
+ * Using explicit aspect container with object-contain and zero horizontal clipping
+ * ensures the entire cross + "Neotia Bhagirathi Woman and Child Care Centre" is 100% legible.
  */
 export const NeotiaBrandLogo: React.FC<{
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
   showTaglineBadge?: boolean;
 }> = ({ size = 'md', className = '', showTaglineBadge = false }) => {
-  const widthClass =
+  const containerClass =
     size === 'sm'
-      ? 'w-36'
+      ? 'w-40 h-14'
       : size === 'lg'
-      ? 'w-56'
+      ? 'w-56 h-20'
       : size === 'xl'
-      ? 'w-64'
-      : 'w-48';
-
-  const heightClass =
-    size === 'sm'
-      ? 'h-12'
-      : size === 'lg'
-      ? 'h-20'
-      : size === 'xl'
-      ? 'h-24'
-      : 'h-16';
+      ? 'w-72 h-28'
+      : 'w-48 h-16';
 
   return (
     <div className={`inline-flex flex-col ${className}`}>
       <div
-        className={`relative overflow-hidden bg-white rounded-lg flex items-center justify-center ${widthClass} ${heightClass}`}
+        className={`relative overflow-hidden bg-white flex items-center justify-center ${containerClass}`}
       >
         <img
           src={`${import.meta.env.BASE_URL}neotia-logo.png`}
           alt="Neotia Bhagirathi Woman and Child Care Centre"
-          className="w-full h-auto max-w-none object-contain scale-[1.12] select-none"
+          className="w-full h-full object-contain scale-[1.22] select-none"
         />
       </div>
       {showTaglineBadge && (
-        <span className="mt-1 text-[11px] font-medium text-slate-500 tracking-tight">
-          Ambuja Neotia Healthcare Venture Ltd.
-        </span>
+        <div className="mt-1 flex items-center gap-2 text-[11px] font-medium text-slate-500 tracking-wide">
+          <span className="h-[1px] w-4 bg-[#E68A00]" />
+          <span>Ambuja Neotia Healthcare Venture Ltd.</span>
+        </div>
       )}
     </div>
   );
