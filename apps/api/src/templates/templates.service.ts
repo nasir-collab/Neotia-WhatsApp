@@ -8,7 +8,7 @@ export class TemplatesService {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(AuditService) private readonly auditService: AuditService
-  ) {}
+  ) { }
 
   async resolveHospitalLanguage(hospitalId: string, preferredLanguage?: string): Promise<string> {
     const config = await this.prisma.hospitalConfiguration.findUnique({

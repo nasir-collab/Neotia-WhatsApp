@@ -18,6 +18,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { apiRequest } from '../services/api';
+import { NeotiaBrandLogo } from '../components/NeotiaBrandLogo';
 
 // ============================================================================
 // PAGE 24: INTERACTIVE LIVE DEMO SIMULATOR (10 SCENARIOS)
@@ -457,18 +458,25 @@ export const ClientPresentationModePage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 text-white rounded-2xl p-8 shadow-xl border border-slate-800">
+      <div className="bg-gradient-to-br from-[#062646] via-[#0B4F8A] to-[#041A30] text-white rounded-2xl p-8 shadow-xl border border-[#0D68AF]/40 relative overflow-hidden">
+        <div
+          className="absolute top-0 left-0 right-0 h-1.5"
+          style={{ background: 'linear-gradient(90deg, #F39200 0%, #FFB74D 40%, #0D68AF 40%, #38bdf8 100%)' }}
+        />
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <span className="px-3 py-1 rounded-full bg-teal-500/20 border border-teal-400/30 text-teal-300 text-xs font-bold">
-            {current.badge}
-          </span>
+          <div className="flex items-center gap-4">
+            <NeotiaBrandLogo size="sm" />
+            <span className="px-3 py-1 rounded-full bg-[#F39200]/20 border border-[#F39200]/40 text-[#FFB74D] text-xs font-bold">
+              {current.badge}
+            </span>
+          </div>
           <div className="flex items-center gap-2">
             {slides.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setActiveSlide(i)}
                 className={`w-8 h-2 rounded-full transition-all ${
-                  activeSlide === i ? 'bg-teal-400 w-12' : 'bg-slate-700'
+                  activeSlide === i ? 'bg-[#F39200] w-12' : 'bg-white/20'
                 }`}
               />
             ))}
@@ -478,7 +486,7 @@ export const ClientPresentationModePage: React.FC = () => {
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">
           {current.title}
         </h1>
-        <p className="text-sm text-teal-300 mb-6">{current.subtitle}</p>
+        <p className="text-sm text-[#FFB74D] mb-6">{current.subtitle}</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           {current.points.map((pt) => (

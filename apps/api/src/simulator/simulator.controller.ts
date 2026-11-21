@@ -6,7 +6,7 @@ import { SimulatorService } from './simulator.service';
 @ApiBearerAuth()
 @Controller('simulator')
 export class SimulatorController {
-  constructor(@Inject(SimulatorService) private readonly simulatorService: SimulatorService) {}
+  constructor(@Inject(SimulatorService) private readonly simulatorService: SimulatorService) { }
 
   @Get()
   @ApiOperation({ summary: 'Retrieve current Live Demo Simulator state, scenarios, handset messages, and event history' })
