@@ -71,6 +71,7 @@ export class AppointmentsService {
         hospital: true,
         scheduledMessages: true,
         messageLogs: true,
+        holdoutAssignment: true,
       },
     });
 
@@ -108,6 +109,13 @@ export class AppointmentsService {
           department: body.department,
           status: 'CONFIRMATION_PENDING',
           lastSyncedAt: new Date(),
+        },
+        include: {
+          patient: true,
+          hospital: true,
+          scheduledMessages: true,
+          messageLogs: true,
+          holdoutAssignment: true,
         },
       });
 
