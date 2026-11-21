@@ -42,7 +42,7 @@ interface HospitalFilterContextType {
 
 export const HospitalFilterContext = createContext<HospitalFilterContextType>({
   selectedHospitalId: 'ALL',
-  setSelectedHospitalId: () => {},
+  setSelectedHospitalId: () => { },
   hospitals: [],
   user: null,
   operatingMode: 'DEMO',
@@ -186,10 +186,9 @@ export const DashboardLayout: React.FC<{
                         to={item.to}
                         end={item.to === '/'}
                         className={({ isActive }) =>
-                          `flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all ${
-                            isActive
-                              ? 'bg-gradient-to-r from-[#F39200] to-[#E07B00] text-white font-semibold shadow-md shadow-[#F39200]/20'
-                              : 'text-sky-100/85 hover:bg-[#0B4F8A]/60 hover:text-white'
+                          `flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all ${isActive
+                            ? 'bg-gradient-to-r from-[#F39200] to-[#E07B00] text-white font-semibold shadow-md shadow-[#F39200]/20'
+                            : 'text-sky-100/85 hover:bg-[#0B4F8A]/60 hover:text-white'
                           }`
                         }
                       >

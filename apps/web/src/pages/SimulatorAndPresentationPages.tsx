@@ -186,17 +186,15 @@ export const LiveDemoSimulatorPage: React.FC = () => {
           <button
             key={sc.id}
             onClick={() => startMutation.mutate(sc.id)}
-            className={`text-left p-2.5 rounded-lg border text-[11px] transition-all ${
-              currentScenario?.id === sc.id
+            className={`text-left p-2.5 rounded-lg border text-[11px] transition-all ${currentScenario?.id === sc.id
                 ? 'bg-teal-950 text-white border-teal-700 shadow'
                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-            }`}
+              }`}
           >
             <div className="font-bold truncate">{sc.title}</div>
             <div
-              className={`text-[10px] mt-0.5 ${
-                currentScenario?.id === sc.id ? 'text-teal-300' : 'text-slate-400'
-              }`}
+              className={`text-[10px] mt-0.5 ${currentScenario?.id === sc.id ? 'text-teal-300' : 'text-slate-400'
+                }`}
             >
               {sc.hospitalCode} • {sc.language.toUpperCase()}
             </div>
@@ -237,13 +235,12 @@ export const LiveDemoSimulatorPage: React.FC = () => {
                 (state.whatsappHandsetMessages || []).map((msg: any) => (
                   <div
                     key={msg.id}
-                    className={`rounded-xl p-3 text-xs max-w-[90%] ${
-                      msg.sender === 'PATIENT'
+                    className={`rounded-xl p-3 text-xs max-w-[90%] ${msg.sender === 'PATIENT'
                         ? 'ml-auto bg-emerald-700 text-white'
                         : msg.sender === 'SYSTEM'
-                        ? 'mx-auto bg-amber-950/90 border border-amber-700 text-amber-200 text-[11px] max-w-full'
-                        : 'bg-slate-800 text-slate-100 border border-slate-700'
-                    }`}
+                          ? 'mx-auto bg-amber-950/90 border border-amber-700 text-amber-200 text-[11px] max-w-full'
+                          : 'bg-slate-800 text-slate-100 border border-slate-700'
+                      }`}
                   >
                     <div className="leading-relaxed whitespace-pre-wrap">{msg.text}</div>
                     {msg.buttons && msg.buttons.length > 0 && (
@@ -292,16 +289,14 @@ export const LiveDemoSimulatorPage: React.FC = () => {
                   return (
                     <div
                       key={stText}
-                      className={`p-2.5 rounded-lg border text-xs flex items-center gap-2.5 ${
-                        done
+                      className={`p-2.5 rounded-lg border text-xs flex items-center gap-2.5 ${done
                           ? 'bg-emerald-50 border-emerald-200 text-emerald-950 font-semibold'
                           : 'bg-slate-50 border-slate-200 text-slate-500'
-                      }`}
+                        }`}
                     >
                       <CheckCircle2
-                        className={`w-4 h-4 shrink-0 ${
-                          done ? 'text-emerald-600' : 'text-slate-300'
-                        }`}
+                        className={`w-4 h-4 shrink-0 ${done ? 'text-emerald-600' : 'text-slate-300'
+                          }`}
                       />
                       <span>
                         Step {stepNum}: {stText}
@@ -475,9 +470,8 @@ export const ClientPresentationModePage: React.FC = () => {
               <button
                 key={i}
                 onClick={() => setActiveSlide(i)}
-                className={`w-8 h-2 rounded-full transition-all ${
-                  activeSlide === i ? 'bg-[#F39200] w-12' : 'bg-white/20'
-                }`}
+                className={`w-8 h-2 rounded-full transition-all ${activeSlide === i ? 'bg-[#F39200] w-12' : 'bg-white/20'
+                  }`}
               />
             ))}
           </div>

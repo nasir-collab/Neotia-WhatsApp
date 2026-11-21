@@ -161,11 +161,10 @@ export const LoginPage: React.FC = () => {
                     setEmail(acc.email);
                     setPassword('AnhvlDemo@2026');
                   }}
-                  className={`text-left px-2.5 py-1.5 rounded-lg border text-xs transition-all ${
-                    email === acc.email
+                  className={`text-left px-2.5 py-1.5 rounded-lg border text-xs transition-all ${email === acc.email
                       ? 'border-[#F39200] bg-[#FFF4E5] text-[#062646] font-bold shadow-sm'
                       : 'border-slate-200 hover:bg-[#F4F8FC] text-slate-600'
-                  }`}
+                    }`}
                 >
                   <div className="truncate">{acc.label}</div>
                   <div className="text-[10px] text-[#0B4F8A] truncate">{acc.email}</div>

@@ -39,7 +39,7 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
     @Inject(TemplatesService) private readonly templatesService: TemplatesService,
     @Inject(WhatsappService) private readonly whatsappService: WhatsappService,
     @Inject(AuditService) private readonly auditService: AuditService
-  ) {}
+  ) { }
 
   async onModuleInit() {
     const redisAvailable = await checkRedisPort(6379);
@@ -146,13 +146,13 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
       targetUtc: Date;
       immediate?: boolean;
     }> = [
-      {
-        jobType: 'CONFIRMATION',
-        category: 'APPOINTMENT_CONFIRMATION',
-        targetUtc: now,
-        immediate: triggerImmediateConfirmation,
-      },
-    ];
+        {
+          jobType: 'CONFIRMATION',
+          category: 'APPOINTMENT_CONFIRMATION',
+          targetUtc: now,
+          immediate: triggerImmediateConfirmation,
+        },
+      ];
 
     // Advance 24h Reminder: Only schedule if appointment is more than 6 hours away (avoid redundant burst on same-day booking)
     const advanceHours = config?.advanceReminderHours || 24;
@@ -190,12 +190,12 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
         item.jobType === 'CONFIRMATION'
           ? { adjustedUtc: item.targetUtc, wasShifted: false }
           : this.calculateQuietHourAdjustedUtc({
-              targetUtc: item.targetUtc,
-              appointmentTimeLocal: appt.appointmentTime,
-              allowMorningException: config?.allowMorningException ?? true,
-              morningCutoffTime: config?.morningCutoffTime || '10:30',
-              jobType: item.jobType,
-            });
+            targetUtc: item.targetUtc,
+            appointmentTimeLocal: appt.appointmentTime,
+            allowMorningException: config?.allowMorningException ?? true,
+            morningCutoffTime: config?.morningCutoffTime || '10:30',
+            jobType: item.jobType,
+          });
 
       const idempotencyKey = `${appt.id}:${item.jobType}`;
 
@@ -300,8 +300,8 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
           status: dispatchResult.suppressed
             ? 'SUPPRESSED'
             : (dispatchResult as any).failed
-            ? 'FAILED'
-            : 'COMPLETED',
+              ? 'FAILED'
+              : 'COMPLETED',
           suppressionReason: dispatchResult.suppressed ? dispatchResult.reason : null,
           executedAt: new Date(),
         },
