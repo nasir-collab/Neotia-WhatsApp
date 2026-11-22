@@ -110,19 +110,26 @@ export const DoctorDisruptionPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Clean Editorial Page Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0B4F8A] mb-1">
-            <CalendarX className="w-3.5 h-3.5 text-[#F39200]" />
-            Operational Disruption Broadcast · Meta UTILITY
-          </span>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Doctor Cancellation &amp; Delay Broadcast
-          </h1>
-          <p className="text-sm text-slate-500 mt-1 max-w-3xl">
-            Select a consultant and date to halt pending reminders, notify affected patients once with interactive choices (Next Slot, Another Doctor, Call Me), and escalate same-day visits to Altruist.
-          </p>
+      {/* Header */}
+      <div className="rounded-2xl bg-gradient-to-r from-[#062646] via-[#0B4F8A] to-[#083B6B] text-white p-6 shadow-lg border border-[#0D68AF]/40 relative overflow-hidden">
+        <div
+          className="absolute top-0 left-0 right-0 h-1.5"
+          style={{ background: 'linear-gradient(90deg, #F39200 0%, #FFB74D 40%, #0D68AF 40%, #38bdf8 100%)' }}
+        />
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-[#F39200]/20 border border-[#F39200]/40 text-[#FFB74D] text-[11px] font-bold mb-2">
+              <CalendarX className="w-3.5 h-3.5" />
+              Use Case 1 • Operational Disruption Engine (Meta UTILITY Category)
+            </div>
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+              Doctor Cancellation, Delay & Bulk Reschedule Broadcast
+            </h1>
+            <p className="text-xs text-sky-100/90 mt-1 max-w-3xl">
+              Pick a doctor and OPD date to immediately halt pending reminders, send one multilingual WhatsApp Utility alert with interactive options (<strong>Next Available Slot</strong>, <strong>Another Doctor</strong>, <strong>Call Me</strong>), and auto-escalate same-day visits to Altruist.
+            </p>
+          </div>
+          <NeotiaCrossEmblem className="w-10 h-10 opacity-90 hidden sm:block" />
         </div>
       </div>
 
@@ -524,19 +531,26 @@ export const RetargetingConsolePage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Clean Editorial Page Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0B4F8A] mb-1">
-            <Megaphone className="w-3.5 h-3.5 text-[#F39200]" />
-            Multi-Segment Re-Targeting · Meta Category &amp; Dual-Consent Governance
-          </span>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Patient Re-Targeting &amp; Lead Re-Engagement
-          </h1>
-          <p className="text-sm text-slate-500 mt-1 max-w-3xl">
-            Re-engage unrebooked no-shows, cancelled bookings without a replacement slot, and unconverted web form leads with automatic Utility vs Marketing consent verification.
-          </p>
+      {/* Header */}
+      <div className="rounded-2xl bg-gradient-to-r from-[#062646] via-[#0B4F8A] to-[#083B6B] text-white p-6 shadow-lg border border-[#0D68AF]/40 relative overflow-hidden">
+        <div
+          className="absolute top-0 left-0 right-0 h-1.5"
+          style={{ background: 'linear-gradient(90deg, #F39200 0%, #FFB74D 40%, #0D68AF 40%, #38bdf8 100%)' }}
+        />
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-[#F39200]/20 border border-[#F39200]/40 text-[#FFB74D] text-[11px] font-bold mb-2">
+              <Megaphone className="w-3.5 h-3.5" />
+              Use Case 2 • Multi-Segment Re-Targeting & Meta Category Compliance
+            </div>
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+              Patient Re-Targeting & Lead Re-Engagement Console
+            </h1>
+            <p className="text-xs text-sky-100/90 mt-1 max-w-3xl">
+              Re-engage <strong>No-Shows without rebooking</strong>, <strong>Cancelled patients without a new slot</strong>, and <strong>Website/Ad form-fillers who never booked</strong> — with automated Meta <strong>UTILITY vs MARKETING</strong> classification and dual-consent enforcement.
+            </p>
+          </div>
+          <NeotiaCrossEmblem className="w-10 h-10 opacity-90 hidden sm:block" />
         </div>
       </div>
 

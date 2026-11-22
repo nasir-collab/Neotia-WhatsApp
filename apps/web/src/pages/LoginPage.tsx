@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { apiRequest, setAuthSession } from '../services/api';
-import { NeotiaBrandLogo } from '../components/NeotiaBrandLogo';
+import { NeotiaBrandLogo, NeotiaCrossEmblem } from '../components/NeotiaBrandLogo';
 
 const DEMO_ACCOUNTS = [
   { label: 'Super Administrator (All Hospitals)', email: 'superadmin@anhvl-demo.in', role: 'SUPER_ADMIN' },
@@ -44,89 +44,95 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center p-6">
-      <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 bg-white rounded-3xl shadow-[0_20px_60px_rgba(7,42,77,0.08)] overflow-hidden border border-[#EAE6DF]">
-        {/* Left Luxury Editorial Brand Column */}
-        <div className="lg:col-span-5 bg-white p-10 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-[#EAE6DF] relative">
-          <div className="absolute top-0 left-0 right-0 h-[3px] flex">
-            <div className="w-[38%] bg-[#F39200]" />
-            <div className="flex-1 bg-[#0B4F8A]" />
-          </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-[#041A30] via-[#0B4F8A] to-[#062646] flex items-center justify-center p-6">
+      <div className="max-w-4xl w-full grid grid-cols-1 lg:grid-cols-12 bg-white rounded-2xl shadow-2xl overflow-hidden border border-white/15">
+        {/* Left Brand Panel in Bhagirathi Royal Blue & Neotia Orange */}
+        <div className="lg:col-span-5 bg-gradient-to-br from-[#062646] via-[#0B4F8A] to-[#051E38] text-white p-8 flex flex-col justify-between relative overflow-hidden">
+          <div
+            className="absolute top-0 left-0 right-0 h-1.5"
+            style={{ background: 'linear-gradient(90deg, #F39200 0%, #F39200 45%, #0D68AF 45%, #38bdf8 100%)' }}
+          />
           <div>
-            {/* Extra-Large, Unclipped, Ultra-Prominent Official Logo */}
-            <div className="mb-8 pt-2">
-              <NeotiaBrandLogo size="xl" showTaglineBadge />
+            {/* Official Uploaded Neotia Bhagirathi Logo */}
+            <div className="mb-6">
+              <NeotiaBrandLogo size="lg" showTaglineBadge />
             </div>
 
-            <h1 className="font-editorial text-3xl font-semibold text-[#072A4D] leading-snug mb-3">
-              Patient Engagement &amp; OPD Suite
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F39200]/20 border border-[#F39200]/40 text-[#FFB74D] text-xs font-semibold mb-4">
+              <ShieldCheck className="w-4 h-4 text-[#F39200]" />
+              Woman & Child Care Operations
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight mb-3 text-white">
+              WhatsApp Patient Engagement Platform
             </h1>
-            <p className="text-sm text-[#64748B] leading-relaxed">
-              Centralized WhatsApp appointment confirmation, multilingual reminders, Altruist care-desk handoff, and HIS attendance reconciliation for New Town (Kolkata) &amp; Raipur.
+            <p className="text-sm text-sky-100/90 leading-relaxed">
+              Centralized appointment confirmation, multilingual reminders, patient response capture, Altruist call-centre handoff, and HIS attendance reconciliation for New Town (Kolkata) & Raipur.
             </p>
           </div>
 
-          <div className="space-y-3 pt-8 mt-8 border-t border-[#F2EFEA] text-xs text-[#526277]">
-            <div className="flex items-center gap-2.5">
-              <CheckCircle2 className="w-4 h-4 text-[#0B4F8A] shrink-0" />
-              <span>Bengali &amp; English (New Town) · Hindi &amp; English (Raipur)</span>
+          <div className="space-y-3 pt-8 border-t border-white/15 text-xs text-sky-100">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-[#F39200] shrink-0" />
+              <span>New Town (Bengali / English) & Raipur (Hindi / English)</span>
             </div>
-            <div className="flex items-center gap-2.5">
-              <CheckCircle2 className="w-4 h-4 text-[#0B4F8A] shrink-0" />
-              <span>Strict Non-Clinical Boundary &amp; Instant STOP Opt-Out</span>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-[#F39200] shrink-0" />
+              <span>Non-Clinical Safeguard & Instant STOP Opt-Out</span>
             </div>
-            <div className="flex items-center gap-2.5">
-              <CheckCircle2 className="w-4 h-4 text-[#E68A00] shrink-0" />
-              <span>Crafted by Plan D Media for Ambuja Neotia Healthcare</span>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-[#F39200] shrink-0" />
+              <span>Developed by Plan D Media for Neotia Bhagirathi / ANHVL</span>
             </div>
           </div>
         </div>
 
-        {/* Right Sign-In Column */}
-        <div className="lg:col-span-7 p-10 bg-[#FAF9F6]/60">
-          <h2 className="font-editorial text-2xl font-semibold text-[#072A4D] mb-1">
-            Sign in to Operations Console
-          </h2>
-          <p className="text-xs text-[#64748B] mb-7">
-            Role-based access control and hospital-unit scoping enforced via JWT authentication.
+        {/* Right Form Panel */}
+        <div className="lg:col-span-7 p-8">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-xl font-bold text-[#062646]">
+              Sign in to Operations Console
+            </h2>
+            <NeotiaCrossEmblem className="w-6 h-6" />
+          </div>
+          <p className="text-xs text-slate-500 mb-6">
+            Role-based access control and hospital-unit isolation enforced by backend JWT guard.
           </p>
 
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
+            <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
               {error}
             </div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-[#64748B] mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Official Email Address
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-[#94A0B2] absolute left-3.5 top-3" />
+                <Mail className="w-4 h-4 text-[#0B4F8A] absolute left-3 top-2.5" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-[#E2DDD4] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0B4F8A]/15 focus:border-[#0B4F8A]"
+                  className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0B4F8A]"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-[#64748B] mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Password
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-[#94A0B2] absolute left-3.5 top-3" />
+                <Lock className="w-4 h-4 text-[#0B4F8A] absolute left-3 top-2.5" />
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-[#E2DDD4] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0B4F8A]/15 focus:border-[#0B4F8A]"
+                  className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0B4F8A]"
                 />
               </div>
             </div>
@@ -134,19 +140,19 @@ export const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-5 bg-[#072A4D] hover:bg-[#0B4F8A] text-white font-semibold text-sm rounded-xl shadow-sm flex items-center justify-center gap-2 transition-colors"
+              className="w-full py-2.5 px-4 bg-gradient-to-r from-[#F39200] to-[#E07B00] hover:from-[#E07B00] hover:to-[#CC6E00] text-white font-bold text-sm rounded-lg shadow-md shadow-[#F39200]/25 flex items-center justify-center gap-2 transition-all"
             >
-              <span>{loading ? 'Signing in...' : 'Enter Neotia Bhagirathi Console'}</span>
-              <ArrowRight className="w-4 h-4 text-[#F39200]" />
+              <span>{loading ? 'Authenticating...' : 'Sign In to Neotia Bhagirathi Portal'}</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
-          {/* UAT Role Switcher */}
-          <div className="mt-8 pt-6 border-t border-[#EAE6DF]">
-            <div className="text-[10px] font-semibold text-[#8A94A6] uppercase tracking-[0.14em] mb-3">
-              UAT &amp; Executive Role Switcher (Password: AnhvlDemo@2026)
+          {/* Quick Role Switcher for Demo / UAT Evaluation */}
+          <div className="mt-7 pt-5 border-t border-slate-200">
+            <div className="text-xs font-bold text-[#0B4F8A] uppercase tracking-wider mb-2.5">
+              Synthetic Demo & UAT Role Switcher (Password: AnhvlDemo@2026)
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
               {DEMO_ACCOUNTS.map((acc) => (
                 <button
                   key={acc.email}
@@ -155,14 +161,13 @@ export const LoginPage: React.FC = () => {
                     setEmail(acc.email);
                     setPassword('AnhvlDemo@2026');
                   }}
-                  className={`text-left px-3.5 py-2.5 rounded-xl border text-xs transition ${
-                    email === acc.email
-                      ? 'border-[#0B4F8A] bg-[#F0F6FC] text-[#072A4D] font-semibold shadow-sm'
-                      : 'border-[#EAE6DF] bg-white hover:border-[#CBD5E1] text-[#526277]'
-                  }`}
+                  className={`text-left px-2.5 py-1.5 rounded-lg border text-xs transition-all ${email === acc.email
+                      ? 'border-[#F39200] bg-[#FFF4E5] text-[#062646] font-bold shadow-sm'
+                      : 'border-slate-200 hover:bg-[#F4F8FC] text-slate-600'
+                    }`}
                 >
                   <div className="truncate">{acc.label}</div>
-                  <div className="text-[10px] text-[#8A94A6] truncate mt-0.5">{acc.email}</div>
+                  <div className="text-[10px] text-[#0B4F8A] truncate">{acc.email}</div>
                 </button>
               ))}
             </div>
